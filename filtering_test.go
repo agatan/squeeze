@@ -22,6 +22,11 @@ func TestFiltering(t *testing.T) {
 			[]string{"a.out"},
 			[]rune("a."),
 		},
+		{
+			[]string{"README.md", "filtering.go", "filtering_test.go", "main.go"},
+			[]string{"filtering.go", "filtering_test.go"},
+			[]rune("fil go"),
+		},
 	}
 	for _, r := range sets {
 		res := filtering(r.C, r.In)

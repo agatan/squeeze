@@ -2,6 +2,7 @@ package main
 
 import (
 	"regexp"
+	"strings"
 )
 
 func filtering(candidates []string, needle []rune) <-chan []string {
@@ -13,8 +14,12 @@ func filtering(candidates []string, needle []rune) <-chan []string {
 		return result
 	}
 	go func() {
-		reg := string(needle)
-		matcher := regexp.MustCompile(regexp.QuoteMeta(reg))
+		needles := strings.Split(string(needle), " ")
+		regs := []string{}
+		for _, n := range needles {
+			regs = append(regs, regexp.QuoteMeta(n))
+		}
+		matcher := regexp.MustCompile(strings.Join(regs, ".*"))
 		res := []string{}
 		for _, c := range candidates {
 			if matcher.MatchString(c) {
