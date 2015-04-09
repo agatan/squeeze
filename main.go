@@ -7,6 +7,8 @@ import (
 )
 
 func main() {
+	s := newScreen()
+
 	if err := termbox.Init(); err != nil {
 		panic(err)
 	}
@@ -16,7 +18,7 @@ func main() {
 		termbox.Close()
 		fmt.Println(result)
 	}()
-	s := newScreen()
+
 	s.drawScreen()
 	for {
 		updatePrompt := false

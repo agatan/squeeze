@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 
+	"github.com/andrew-d/go-termutil"
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 )
@@ -18,6 +20,10 @@ type screen struct {
 }
 
 func newScreen() *screen {
+	if termutil.Isatty(os.Stdin.Fd()) {
+		fmt.Fprintf(os.Stderr, "nothing to read\n")
+		os.Exit(1)
+	}
 	scanner := bufio.NewScanner(os.Stdin)
 	var candidates = []string{}
 	for scanner.Scan() {
