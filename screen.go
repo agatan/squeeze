@@ -143,3 +143,12 @@ func (s *screen) drawScreen() {
 	}
 	termbox.Flush()
 }
+
+func updateFilterAndShow(s *screen) {
+	s.drawPrompt()
+	go func() {
+		result := filtering(s.candidates, s.input)
+		s.filtered = <-result
+		s.drawScreen()
+	}()
+}

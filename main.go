@@ -72,12 +72,3 @@ func main() {
 		}
 	}
 }
-
-func updateFilterAndShow(s *screen) {
-	s.drawPrompt()
-	go func() {
-		result := filtering(s.candidates, s.input)
-		s.filtered = <-result
-		s.drawScreen()
-	}()
-}
