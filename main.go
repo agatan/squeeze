@@ -51,7 +51,7 @@ func main() {
 				s.deleteChar()
 				updateWithFilter = true
 			case termbox.KeyEnter:
-				result = s.getSelectedLine()
+				result = s.getSelectedLine().str
 				return
 			case termbox.KeySpace:
 				s.insertChar(' ')

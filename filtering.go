@@ -1,30 +1,44 @@
 package main
 
-import (
-	"regexp"
-	"strings"
-)
+import "strings"
 
-func filtering(candidates []string, needle []rune) <-chan []string {
-	result := make(chan []string)
+type position struct {
+	Start, End int
+}
+
+type match struct {
+	str       string
+	positions []position
+}
+
+func filtering(candidates []string, needle []rune) <-chan []match {
+	result := make(chan []match)
 	if len(needle) < 1 {
 		go func() {
-			result <- candidates
+			res := make([]match, len(candidates))
+			for i, s := range candidates {
+				res[i] = match{s, nil}
+			}
+			result <- res
 		}()
 		return result
 	}
 	go func() {
-		needles := strings.Split(string(needle), " ")
-		regs := []string{}
-		for _, n := range needles {
-			regs = append(regs, regexp.QuoteMeta(n))
-		}
-		matcher := regexp.MustCompile(strings.Join(regs, ".*"))
-		res := []string{}
-		for _, c := range candidates {
-			if matcher.MatchString(c) {
-				res = append(res, c)
+		needles := strings.Split(strings.TrimRight(string(needle), " "), " ")
+		res := []match{}
+	candLoop:
+		for _, cand := range candidates {
+			m := match{cand, []position{}}
+			restPos := 0
+			for _, n := range needles {
+				idx := strings.Index(cand[restPos:], n)
+				if idx == -1 {
+					continue candLoop
+				}
+				m.positions = append(m.positions, position{restPos + idx, restPos + idx + len(n)})
+				restPos += idx + len(n)
 			}
+			res = append(res, m)
 		}
 		result <- res
 	}()

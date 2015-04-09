@@ -15,7 +15,7 @@ type screen struct {
 	cursorX       int
 	selectedLine  int
 	candidates    []string
-	filtered      []string
+	filtered      []match
 	input         []rune
 }
 
@@ -33,7 +33,10 @@ func newScreen() *screen {
 	s := new(screen)
 	s.width, s.height = termbox.Size()
 	s.candidates = candidates
-	s.filtered = candidates
+	s.filtered = make([]match, len(s.candidates))
+	for idx, str := range s.candidates {
+		s.filtered[idx] = match{str, nil}
+	}
 	return s
 }
 
@@ -83,6 +86,20 @@ func setLine(x, y int, fg, bg termbox.Attribute, strs ...string) {
 	}
 }
 
+func setMatch(y int, fg, bg termbox.Attribute, m match) {
+	if len(m.positions) == 0 {
+		setLine(0, y, fg, bg, m.str)
+		return
+	}
+	last := 0
+	for _, hl := range m.positions {
+		setLine(last, y, fg, bg, m.str[last:hl.Start])
+		setLine(hl.Start, y, termbox.ColorRed, bg, m.str[hl.Start:hl.End])
+		last = hl.End
+	}
+	setLine(last, y, fg, bg, m.str[last:])
+}
+
 func (s *screen) selectNext() {
 	if s.selectedLine < len(s.filtered) {
 		s.selectedLine++
@@ -95,7 +112,7 @@ func (s *screen) selectPrev() {
 	}
 }
 
-func (s *screen) getSelectedLine() string {
+func (s *screen) getSelectedLine() match {
 	return s.filtered[s.selectedLine]
 }
 
@@ -117,11 +134,11 @@ func (s *screen) drawPrompt() {
 func (s *screen) drawScreen() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	s.setPrompt()
-	for idx, str := range s.filtered {
+	for idx, m := range s.filtered {
 		if idx == s.selectedLine {
-			setLine(0, idx+1, termbox.ColorDefault, termbox.ColorGreen, str)
+			setMatch(idx+1, termbox.ColorDefault, termbox.ColorGreen, m)
 		} else {
-			setLine(0, idx+1, termbox.ColorDefault, termbox.ColorDefault, str)
+			setMatch(idx+1, termbox.ColorDefault, termbox.ColorDefault, m)
 		}
 	}
 	termbox.Flush()
