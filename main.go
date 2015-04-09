@@ -1,12 +1,31 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
 
 	"github.com/nsf/termbox-go"
 )
 
+const version = "0.0.1"
+
+func printVersion() {
+	fmt.Printf("squeeze - version %s\n", version)
+}
+
 func main() {
+
+	v := flag.Bool("v", false, "show version")
+	flag.BoolVar(v, "version", false, "show version")
+
+	flag.Parse()
+
+	if *v {
+		printVersion()
+		os.Exit(0)
+	}
+
 	s := newScreen()
 
 	if err := termbox.Init(); err != nil {
