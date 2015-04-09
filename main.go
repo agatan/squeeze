@@ -53,6 +53,9 @@ func main() {
 			case termbox.KeyEnter:
 				result = s.getSelectedLine()
 				return
+			case termbox.KeySpace:
+				s.insertChar(' ')
+				updateWithFilter = true
 			default:
 				s.insertChar(ev.Ch)
 				updateWithFilter = true
