@@ -1,6 +1,9 @@
 package main
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 type position struct {
 	Start, End int
@@ -11,14 +14,19 @@ type match struct {
 	positions []position
 }
 
+func makeMatches(strs []string) []match {
+	res := make([]match, len(strs))
+	for i, s := range strs {
+		res[i] = match{s, nil}
+	}
+	return res
+}
+
 func filtering(candidates []string, needle []rune) <-chan []match {
 	result := make(chan []match)
 	if len(needle) < 1 {
 		go func() {
-			res := make([]match, len(candidates))
-			for i, s := range candidates {
-				res[i] = match{s, nil}
-			}
+			res := makeMatches(candidates)
 			result <- res
 		}()
 		return result
@@ -39,6 +47,36 @@ func filtering(candidates []string, needle []rune) <-chan []match {
 				restPos += idx + len(n)
 			}
 			res = append(res, m)
+		}
+		result <- res
+	}()
+	return result
+}
+
+func regexpFiltering(candidates []string, needle []rune) <-chan []match {
+	result := make(chan []match)
+	if len(needle) < 1 {
+		go func() {
+			res := makeMatches(candidates)
+			result <- res
+		}()
+		return result
+	}
+	go func() {
+		reg, err := regexp.Compile(string(needle))
+		if err != nil {
+			result <- []match{}
+			return
+		}
+		res := make([]match, len(candidates))
+		idx := 0
+		for _, c := range candidates {
+			pos := reg.FindStringIndex(c)
+			if pos == nil {
+				continue
+			}
+			res[idx] = match{str: c, positions: []position{position{pos[0], pos[1]}}}
+			idx++
 		}
 		result <- res
 	}()

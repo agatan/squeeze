@@ -18,6 +18,8 @@ func main() {
 
 	v := flag.Bool("v", false, "show version")
 	flag.BoolVar(v, "version", false, "show version")
+	re := flag.Bool("re", false, "use regex pattern")
+	flag.BoolVar(re, "regex", false, "use regex pattern")
 
 	flag.Parse()
 
@@ -87,7 +89,7 @@ func main() {
 			s.drawPrompt()
 		}
 		if updateWithFilter {
-			updateFilterAndShow(s)
+			updateFilterAndShow(s, *re)
 		}
 	}
 }

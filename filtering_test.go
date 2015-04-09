@@ -15,6 +15,36 @@ func makeTestMatch(str string, pos ...position) match {
 	return match{str, pos}
 }
 
+var testCandidates = []string{
+	"README.md",
+	"filtering.go",
+	"filtering_test.go",
+	"main.go",
+	"screen.go",
+}
+
+func TestRegexpFiltering(t *testing.T) {
+	tests := []result{
+		{
+			testCandidates,
+			[]match{
+				makeTestMatch("README.md", position{0, len("README.md")}),
+				makeTestMatch("filtering.go", position{0, len("filtering.go")}),
+				makeTestMatch("filtering_test.go", position{0, len("filtering_test.go")}),
+				makeTestMatch("main.go", position{0, len("main.go")}),
+				makeTestMatch("screen.go", position{0, len("screen.go")}),
+			},
+			[]rune(".*"),
+		},
+	}
+	for _, r := range tests {
+		res := regexpFiltering(r.Candidate, r.In)
+		if got := <-res; !reflect.DeepEqual(r.Out, got) {
+			t.Errorf("regexpFiltering(%#v, `%s`) = %#v, want %#v", r.Candidate, string(r.In), got, r.Out)
+		}
+	}
+}
+
 func TestFiltering(t *testing.T) {
 	sets := []result{
 		{

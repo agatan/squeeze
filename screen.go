@@ -144,10 +144,15 @@ func (s *screen) drawScreen() {
 	termbox.Flush()
 }
 
-func updateFilterAndShow(s *screen) {
+func updateFilterAndShow(s *screen, re bool) {
 	s.drawPrompt()
 	go func() {
-		result := filtering(s.candidates, s.input)
+		var result <-chan []match
+		if re {
+			result = regexpFiltering(s.candidates, s.input)
+		} else {
+			result = filtering(s.candidates, s.input)
+		}
 		s.filtered = <-result
 		s.drawScreen()
 	}()
