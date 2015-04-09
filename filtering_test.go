@@ -13,6 +13,11 @@ type result struct {
 func TestFiltering(t *testing.T) {
 	sets := []result{
 		{
+			[]string{"aa", "bb"},
+			[]string{"aa", "bb"},
+			[]rune(""),
+		},
+		{
 			[]string{"abca", "caba", "test"},
 			[]string{"abca", "caba"},
 			[]rune("ca"),
