@@ -74,6 +74,9 @@ func main() {
 			case termbox.KeyEnter:
 				result = s.getSelectedLine().str
 				return
+			case termbox.KeyCtrlSlash:
+				*re = !*re
+				updateWithFilter = true
 			case termbox.KeySpace:
 				s.insertChar(' ')
 				updateWithFilter = true
