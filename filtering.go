@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"regexp"
 	"strings"
 )
@@ -22,6 +23,43 @@ func makeMatches(strs []string) []match {
 	return res
 }
 
+func matching(src string, needle []rune) (match, error) {
+	if !*re {
+		return matchingNormal(src, needle)
+	}
+	return matchingRegex(src, needle)
+}
+
+func matchingNormal(src string, needle []rune) (match, error) {
+	if len(needle) < 1 {
+		return match{src, nil}, nil
+	}
+	needles := strings.Split(strings.TrimRight(string(needle), " "), " ")
+	m := match{src, []position{}}
+	restPos := 0
+	for _, n := range needles {
+		idx := strings.Index(src[restPos:], n)
+		if idx == -1 {
+			return m, errors.New("not match")
+		}
+		m.positions = append(m.positions, position{restPos + idx, restPos + idx + len(n)})
+		restPos += idx + len(n)
+	}
+	return m, nil
+}
+
+func matchingRegex(src string, needle []rune) (match, error) {
+	reg, err := regexp.Compile(string(needle))
+	if err != nil {
+		return match{}, errors.New("invalid regexp")
+	}
+	pos := reg.FindStringIndex(src)
+	if pos == nil {
+		return match{}, errors.New("not match")
+	}
+	return match{str: src, positions: []position{position{pos[0], pos[1]}}}, nil
+}
+
 func filtering(candidates []string, needle []rune) <-chan []match {
 	result := make(chan []match)
 	if len(needle) < 1 {
@@ -32,19 +70,11 @@ func filtering(candidates []string, needle []rune) <-chan []match {
 		return result
 	}
 	go func() {
-		needles := strings.Split(strings.TrimRight(string(needle), " "), " ")
 		res := []match{}
-	candLoop:
 		for _, cand := range candidates {
-			m := match{cand, []position{}}
-			restPos := 0
-			for _, n := range needles {
-				idx := strings.Index(cand[restPos:], n)
-				if idx == -1 {
-					continue candLoop
-				}
-				m.positions = append(m.positions, position{restPos + idx, restPos + idx + len(n)})
-				restPos += idx + len(n)
+			m, err := matching(cand, needle)
+			if err != nil {
+				continue
 			}
 			res = append(res, m)
 		}

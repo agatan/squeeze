@@ -10,15 +10,15 @@ import (
 
 const version = "0.0.1"
 
+var v = flag.Bool("v", false, "show version")
+var re = flag.Bool("re", false, "use regex pattern")
+
 func printVersion() {
 	fmt.Printf("squeeze - version %s\n", version)
 }
 
 func main() {
-
-	v := flag.Bool("v", false, "show version")
 	flag.BoolVar(v, "version", false, "show version")
-	re := flag.Bool("re", false, "use regex pattern")
 	flag.BoolVar(re, "regex", false, "use regex pattern")
 
 	flag.Parse()

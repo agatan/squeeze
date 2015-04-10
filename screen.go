@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
+	"sync"
 
 	"github.com/andrew-d/go-termutil"
 	"github.com/mattn/go-runewidth"
@@ -14,9 +16,42 @@ type screen struct {
 	width, height int
 	cursorX       int
 	selectedLine  int
-	candidates    []string
-	filtered      []match
-	input         []rune
+
+	lock       sync.Mutex
+	candidates []string
+	filtered   []match
+	input      []rune
+}
+
+func (s *screen) initializeCandidateAsync(from io.Reader) {
+	sc := bufio.NewScanner(from)
+	ch := make(chan string)
+	done := make(chan struct{})
+	go func() {
+		for sc.Scan() {
+			ch <- sc.Text()
+		}
+		done <- struct{}{}
+	}()
+	s.appendFromChan(ch, done)
+}
+
+func (s *screen) appendFromChan(ch <-chan string, done <-chan struct{}) {
+	for {
+		select {
+		case str := <-ch:
+			s.lock.Lock()
+			s.candidates = append(s.candidates, str)
+			m, err := matching(str, s.input)
+			if err == nil {
+				s.filtered = append(s.filtered, m)
+				updateFilterAndShow(s, false)
+			}
+			s.lock.Unlock()
+		case <-done:
+			return
+		}
+	}
 }
 
 func newScreen() *screen {
@@ -24,19 +59,10 @@ func newScreen() *screen {
 		fmt.Fprintf(os.Stderr, "nothing to read\n")
 		os.Exit(1)
 	}
-	scanner := bufio.NewScanner(os.Stdin)
-	var candidates = []string{}
-	for scanner.Scan() {
-		candidates = append(candidates, scanner.Text())
-	}
 
 	s := new(screen)
 	s.width, s.height = termbox.Size()
-	s.candidates = candidates
-	s.filtered = make([]match, len(s.candidates))
-	for idx, str := range s.candidates {
-		s.filtered[idx] = match{str, nil}
-	}
+	go s.initializeCandidateAsync(os.Stdin)
 	return s
 }
 
@@ -147,6 +173,8 @@ func (s *screen) drawScreen() {
 func updateFilterAndShow(s *screen, re bool) {
 	s.drawPrompt()
 	go func() {
+		s.lock.Lock()
+		defer s.lock.Unlock()
 		var result <-chan []match
 		if re {
 			result = regexpFiltering(s.candidates, s.input)
