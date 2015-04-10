@@ -45,7 +45,7 @@ func (s *screen) appendFromChan(ch <-chan string, done <-chan struct{}) {
 			m, err := matching(str, s.input)
 			if err == nil {
 				s.filtered = append(s.filtered, m)
-				updateFilterAndShow(s, false)
+				updateFilterAndShow(s)
 			}
 			s.lock.Unlock()
 		case <-done:
@@ -139,6 +139,9 @@ func (s *screen) selectPrev() {
 }
 
 func (s *screen) getSelectedLine() match {
+	if len(s.filtered) == 0 {
+		return match{}
+	}
 	return s.filtered[s.selectedLine]
 }
 
@@ -170,13 +173,13 @@ func (s *screen) drawScreen() {
 	termbox.Flush()
 }
 
-func updateFilterAndShow(s *screen, re bool) {
+func updateFilterAndShow(s *screen) {
 	s.drawPrompt()
 	go func() {
 		s.lock.Lock()
 		defer s.lock.Unlock()
 		var result <-chan []match
-		if re {
+		if currentMode == regex {
 			result = regexpFiltering(s.candidates, s.input)
 		} else {
 			result = filtering(s.candidates, s.input)

@@ -10,14 +10,24 @@ import (
 
 const version = "0.0.1"
 
-var v = flag.Bool("v", false, "show version")
-var re = flag.Bool("re", false, "use regex pattern")
+type mode uint
+
+const (
+	normal mode = iota
+	regex
+	fuzzy
+)
+
+var currentMode = normal
 
 func printVersion() {
 	fmt.Printf("squeeze - version %s\n", version)
 }
 
 func main() {
+	// arguments
+	var v = flag.Bool("v", false, "show version")
+	var re = flag.Bool("re", false, "use regex pattern")
 	flag.BoolVar(v, "version", false, "show version")
 	flag.BoolVar(re, "regex", false, "use regex pattern")
 
@@ -26,6 +36,9 @@ func main() {
 	if *v {
 		printVersion()
 		os.Exit(0)
+	}
+	if *re {
+		currentMode = regex
 	}
 
 	s := newScreen()
@@ -37,7 +50,9 @@ func main() {
 	defer func() {
 		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 		termbox.Close()
-		fmt.Println(result)
+		if result != "" {
+			fmt.Println(result)
+		}
 	}()
 
 	s.drawScreen()
@@ -92,7 +107,7 @@ func main() {
 			s.drawPrompt()
 		}
 		if updateWithFilter {
-			updateFilterAndShow(s, *re)
+			updateFilterAndShow(s)
 		}
 	}
 }

@@ -24,10 +24,16 @@ func makeMatches(strs []string) []match {
 }
 
 func matching(src string, needle []rune) (match, error) {
-	if !*re {
+	switch currentMode {
+	case normal:
 		return matchingNormal(src, needle)
+	case regex:
+		return matchingRegex(src, needle)
+	case fuzzy:
+		return match{}, nil
+	default:
+		return match{}, nil
 	}
-	return matchingRegex(src, needle)
 }
 
 func matchingNormal(src string, needle []rune) (match, error) {
