@@ -101,7 +101,7 @@ func setMatch(y int, fg, bg termbox.Attribute, m match) {
 }
 
 func (s *screen) selectNext() {
-	if s.selectedLine < len(s.filtered) {
+	if s.selectedLine < len(s.filtered)-1 {
 		s.selectedLine++
 	}
 }
@@ -154,6 +154,9 @@ func updateFilterAndShow(s *screen, re bool) {
 			result = filtering(s.candidates, s.input)
 		}
 		s.filtered = <-result
+		if s.selectedLine >= len(s.filtered) {
+			s.selectedLine = len(s.filtered) - 1
+		}
 		s.drawScreen()
 	}()
 }
