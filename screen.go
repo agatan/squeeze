@@ -13,6 +13,7 @@ import (
 )
 
 type screen struct {
+	rederLock     sync.Mutex
 	width, height int
 	cursorX       int
 	selectedLine  int
@@ -156,11 +157,15 @@ func (s *screen) setPrompt() {
 }
 
 func (s *screen) drawPrompt() {
+	s.rederLock.Lock()
+	defer s.rederLock.Unlock()
 	s.setPrompt()
 	termbox.Flush()
 }
 
 func (s *screen) drawScreen() {
+	s.rederLock.Lock()
+	defer s.rederLock.Unlock()
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	s.setPrompt()
 	for idx, m := range s.filtered {

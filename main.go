@@ -99,6 +99,9 @@ func main() {
 				s.insertChar(ev.Ch)
 				updateWithFilter = true
 			}
+		case termbox.EventResize:
+			s.width, s.height = termbox.Size()
+			updateAll = true
 		}
 		if updateAll {
 			s.drawScreen()
