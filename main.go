@@ -41,11 +41,12 @@ func main() {
 		currentMode = regex
 	}
 
-	s := newScreen()
-
 	if err := termbox.Init(); err != nil {
 		panic(err)
 	}
+
+	s := newScreen()
+
 	result := ""
 	defer func() {
 		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
