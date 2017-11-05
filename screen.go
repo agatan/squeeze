@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/andrew-d/go-termutil"
+	isatty "github.com/mattn/go-isatty"
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 )
@@ -56,7 +56,7 @@ func (s *screen) appendFromChan(ch <-chan string, done <-chan struct{}) {
 }
 
 func newScreen() *screen {
-	if termutil.Isatty(os.Stdin.Fd()) {
+	if isatty.IsTerminal(os.Stdin.Fd()) {
 		fmt.Fprintf(os.Stderr, "nothing to read\n")
 		os.Exit(1)
 	}
