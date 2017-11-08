@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -10,6 +9,7 @@ import (
 	isatty "github.com/mattn/go-isatty"
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
+	"github.com/pkg/errors"
 )
 
 type screen struct {
@@ -55,16 +55,19 @@ func (s *screen) appendFromChan(ch <-chan string, done <-chan struct{}) {
 	}
 }
 
-func newScreen() *screen {
+func newScreen() (*screen, error) {
 	if isatty.IsTerminal(os.Stdin.Fd()) {
-		fmt.Fprintf(os.Stderr, "nothing to read\n")
-		os.Exit(1)
+		return nil, errors.New("failed to read source")
+	}
+
+	if err := termbox.Init(); err != nil {
+		return nil, errors.Wrap(err, "failed to initialize terminal state")
 	}
 
 	s := new(screen)
 	s.width, s.height = termbox.Size()
 	go s.initializeCandidateAsync(os.Stdin)
-	return s
+	return s, nil
 }
 
 func (s *screen) moveToLeft() {

@@ -41,11 +41,11 @@ func main() {
 		currentMode = regex
 	}
 
-	if err := termbox.Init(); err != nil {
-		panic(err)
+	s, err := newScreen()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
 	}
-
-	s := newScreen()
 
 	result := ""
 	defer func() {
